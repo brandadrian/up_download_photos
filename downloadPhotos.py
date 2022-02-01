@@ -3,6 +3,7 @@ import webbrowser
 import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+import requests
 
 def start():
     options = webdriver.ChromeOptions()
@@ -50,21 +51,30 @@ def iterateAlbum(browser):
             saison = cols[5].text
             linkToAlbum = cols[7]
             if (id.isdigit()):
-                fileName = saison + '_' + name
+                folderName = saison + '_' + name
                 print("*********************************")
-                print("Processing: " + fileName)
+                print("Processing: " + folderName)
                 print("*********************************")
                 linkToAlbum.click()
                 time.sleep(5)
 
                 links = browser.find_elements(By.TAG_NAME, 'a')
-                pictures = []
+                pictureUrls = []
                 try:
+                    number = 0
                     for link in links:
                         if ("https://www.uzepatscher.ch/wp-content/uploads/wppa" in link.text and "https://www.uzepatscher.ch/wp-content/uploads/wppa/thumbs" not in link.text):
-                            pictures.append(link.text)
+                            pictureUrls.append(link.text)
                 finally:
-                    print(list(set(pictures)))
+                    distinctedPictureUrls = list(set(pictureUrls))
+                    print(distinctedPictureUrls)
+                    path = 'C:\\uzepatscher\\' + folderName.replace(" ", "_")
+                    os.mkdir(path)
+                    for pictureUrl in distinctedPictureUrls:
+                        r = requests.get(pictureUrl, allow_redirects=True)
+                        fileName = pictureUrl.split('/')[-1]
+                        fileLocation = path + '\\' + fileName
+                        open(fileLocation, 'wb').write(r.content)
         finally:
             print("Processed " + str(rowNumber) + " of " + str(numberRows))
             time.sleep(5)
