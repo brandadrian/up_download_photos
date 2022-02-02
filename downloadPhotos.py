@@ -29,7 +29,7 @@ def login(browser, url):
     button_login = browser.find_element(By.ID, 'wp-submit')
       
     input_username.send_keys('admin')
-    input_password.send_keys('uzepatsc')
+    input_password.send_keys('')
         
     button_login.click()
 
