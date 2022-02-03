@@ -1,3 +1,4 @@
+from pickle import FALSE, TRUE
 import time
 import webbrowser
 import os
@@ -33,7 +34,7 @@ def login(browser, url):
     button_login = browser.find_element(By.ID, 'wp-submit')
 
     input_username.send_keys('admin')
-    input_password.send_keys('uzepatsc')
+    input_password.send_keys('')
 
     button_login.click()
 
@@ -72,14 +73,19 @@ def iterateAlbum(browser):
                         print("Getting pictures from: " + currentUrl)
                         browser.get(currentUrl)
                         links = browser.find_elements(By.TAG_NAME, 'a')
-
+                        hasNewLinks = 0
                         try:
                             for link in links:
                                 if ("https://www.uzepatscher.ch/wp-content/uploads/wppa" in link.text and "https://www.uzepatscher.ch/wp-content/uploads/wppa/thumbs" not in link.text):
                                     pictureUrls.append(link.text)
+                                    hasNewLinks = 1
                         except Exception as exception:
                             print("ERROR iterating links: " + exception)
                             pass
+
+                        if hasNewLinks == 0:
+                            break
+
                     except Exception as exception:
                         print("ERROR iterating pages: " + exception)
                         pass
