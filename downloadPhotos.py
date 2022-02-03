@@ -6,31 +6,35 @@ from selenium.webdriver.common.by import By
 import requests
 import datetime
 
-url = 'https://www.uzepatscher.ch/wp-admin/admin.php?page=wppa_admin_menu&album-page-no=1'
-downloadBasePath = os.path.join("C:\\uzepatscher\\", datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '\\'
+url = 'https://www.uzepatscher.ch/wp-admin/admin.php?page=wppa_admin_menu&album-page-no=2'
+downloadBasePath = os.path.join(
+    "C:\\uzepatscher\\", datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '\\'
+
 
 def start():
     options = webdriver.ChromeOptions()
-    #Headless mode runs chrome in background
-    #options.add_argument('headless')
-    #Window size must be set for id recognition in headless mode
-    options.add_argument('window-size=1920x1080') 
+    # Headless mode runs chrome in background
+    # options.add_argument('headless')
+    # Window size must be set for id recognition in headless mode
+    options.add_argument('window-size=1920x1080')
     browser = webdriver.Chrome(options=options)
     os.mkdir(downloadBasePath)
     login(browser, url)
     iterateAlbum(browser)
 
+
 def login(browser, url):
     print("Login to", url)
     browser.get(url)
+    time.sleep(2)
 
     input_username = browser.find_element(By.ID, 'user_login')
     input_password = browser.find_element(By.ID, 'user_pass')
     button_login = browser.find_element(By.ID, 'wp-submit')
-      
+
     input_username.send_keys('admin')
     input_password.send_keys('uzepatsc')
-        
+
     button_login.click()
 
     time.sleep(2)
@@ -44,17 +48,18 @@ def iterateAlbum(browser):
     for rowNumber in range(numberRows):
         if (rowNumber == 0):
             continue
-        
+
         try:
             row = browser.find_elements(By.TAG_NAME, 'tr')[rowNumber]
             cols = row.find_elements(By.TAG_NAME, 'td')
             id = cols[0].text
-            name = cols[1].text
-            saison = cols[5].text
-            linkToAlbum = cols[7]
 
             if (id.isdigit()):
-                folderName = saison.replace(" ", "_") + '_' + name.replace(" ", "_")
+                name = cols[1].text
+                saison = cols[5].text
+                linkToAlbum = cols[7]
+                folderName = saison.replace(
+                    " ", "_") + '_' + name.replace(" ", "_")
                 print("Processing folder: " + folderName)
                 linkToAlbum.click()
                 time.sleep(5)
@@ -69,13 +74,15 @@ def iterateAlbum(browser):
         finally:
             print("Processed " + str(rowNumber) + " of " + str(numberRows))
             time.sleep(2)
-            browser.back()
+            browser.get(url)
             time.sleep(2)
+
 
 def downloadPictures(folderName, pictureUrls):
     distinctedPictureUrls = list(set(pictureUrls))
     path = downloadBasePath + folderName
-    print("Download", str(len(distinctedPictureUrls)) ,"files to destination ", path)
+    print("Download", str(len(distinctedPictureUrls)),
+          "files to destination ", path)
 
     os.mkdir(path)
     for pictureUrl in distinctedPictureUrls:
@@ -83,5 +90,6 @@ def downloadPictures(folderName, pictureUrls):
         fileName = pictureUrl.split('/')[-1]
         fileLocation = path + '\\' + fileName
         open(fileLocation, 'wb').write(r.content)
+
 
 start()
