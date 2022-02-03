@@ -69,7 +69,7 @@ def iterateAlbum(browser):
                     try:
 
                         currentUrl = albumUrl + '&wppa-page=' + str(page)
-                        print(currentUrl)
+                        print("Getting pictures from: " + currentUrl)
                         browser.get(currentUrl)
                         links = browser.find_elements(By.TAG_NAME, 'a')
 
@@ -77,10 +77,13 @@ def iterateAlbum(browser):
                             for link in links:
                                 if ("https://www.uzepatscher.ch/wp-content/uploads/wppa" in link.text and "https://www.uzepatscher.ch/wp-content/uploads/wppa/thumbs" not in link.text):
                                     pictureUrls.append(link.text)
-                        finally:
-                            downloadPictures(folderName, pictureUrls)
-                    except Exception:
+                        except Exception as exception:
+                            print("ERROR iterating links: " + exception)
+                            pass
+                    except Exception as exception:
+                        print("ERROR iterating pages: " + exception)
                         pass
+                downloadPictures(folderName, pictureUrls)
         finally:
             print("Processed " + str(rowNumber) + " of " + str(numberRows))
             time.sleep(2)
