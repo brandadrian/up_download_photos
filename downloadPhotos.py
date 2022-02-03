@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 import requests
 import datetime
 
-url = 'https://www.uzepatscher.ch/wp-admin/admin.php?page=wppa_admin_menu&album-page-no=2'
+url = 'https://www.uzepatscher.ch/wp-admin/admin.php?page=wppa_admin_menu&album-page-no=1'
 downloadBasePath = os.path.join(
     "C:\\uzepatscher\\", datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '\\'
 
@@ -63,14 +63,24 @@ def iterateAlbum(browser):
                 print("Processing folder: " + folderName)
                 linkToAlbum.click()
                 time.sleep(5)
-                links = browser.find_elements(By.TAG_NAME, 'a')
                 pictureUrls = []
-                try:
-                    for link in links:
-                        if ("https://www.uzepatscher.ch/wp-content/uploads/wppa" in link.text and "https://www.uzepatscher.ch/wp-content/uploads/wppa/thumbs" not in link.text):
-                            pictureUrls.append(link.text)
-                finally:
-                    downloadPictures(folderName, pictureUrls)
+                albumUrl = browser.current_url
+                for page in range(1, 10):
+                    try:
+
+                        currentUrl = albumUrl + '&wppa-page=' + str(page)
+                        print(currentUrl)
+                        browser.get(currentUrl)
+                        links = browser.find_elements(By.TAG_NAME, 'a')
+
+                        try:
+                            for link in links:
+                                if ("https://www.uzepatscher.ch/wp-content/uploads/wppa" in link.text and "https://www.uzepatscher.ch/wp-content/uploads/wppa/thumbs" not in link.text):
+                                    pictureUrls.append(link.text)
+                        finally:
+                            downloadPictures(folderName, pictureUrls)
+                    except Exception:
+                        pass
         finally:
             print("Processed " + str(rowNumber) + " of " + str(numberRows))
             time.sleep(2)
@@ -84,7 +94,9 @@ def downloadPictures(folderName, pictureUrls):
     print("Download", str(len(distinctedPictureUrls)),
           "files to destination ", path)
 
-    os.mkdir(path)
+    if not os.path.exists(path):
+        os.mkdir(path)
+
     for pictureUrl in distinctedPictureUrls:
         r = requests.get(pictureUrl, allow_redirects=True)
         fileName = pictureUrl.split('/')[-1]
